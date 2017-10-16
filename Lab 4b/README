@@ -1,0 +1,24 @@
+NAME: Justin Hong
+EMAIL: justinjh@ucla.edu
+ID: 604565186
+
+lab4b.c:
+This file contains the program that when run on the Edison, uses the AIO functions of the MRAA library to read from a temperature sensor. It also uses the GPIO functions to sample the state of a button. The program produces reports with the temperature and a timestamp and accepts commands from standard input that change its behavior. I used the poll system call to poll standard input for commands with a timeout that is determined by the desired sample interval of the temperature sensor. The GPIO functions included a convenient function that sets an interrupt on a pin so I could program a function to be called when the button is pressed. 
+
+Makefile:
+This file contains the following targets.
+default: This builds the executable with the flags -lmraa and -lm for the MRAA library and the math library.
+check: This executes tests that check if the program exits properly when given wrong options or options with the wrong arguments.
+clean: This removes all generated programs and output which are the executable and the distribution tarball.
+dist: This creates the distribution tarball.
+
+README:
+This file provides a description of each included file and other information.
+
+References:
+I used code from https://iotdk.intel.com/docs/master/mraa/aio_8h.html to read the voltage from the temperature sensor.
+I used the formula from http://wiki.seeed.cc/Grove-Temperature_Sensor_V1.2/ to convert the voltage reading from the temperature sensor into a temperature reading.
+I used the following sites to learn how to set an interrupt for the button so I can call a function when the button is pressed.
+https://iotdk.intel.com/docs/master/mraa/gpio_8h.html#a61e3a45eb7daad362af4a116d01111fa
+http://www.i-programmer.info/programming/hardware/8744-exploring-edison-mraa-gpio.html?start=2
+https://lasr.cs.ucla.edu/classes/edison_tutorials/gpio.pdf

@@ -1,0 +1,7 @@
+# NAME: Justin Hong, Kedar Thiagarajan
+# EMAIL: justinjh@ucla.edu, kedarbt@ucla.edu
+# ID: 604565186, 504539433
+
+#!/usr/bin/bash
+
+python lab3b.py $1

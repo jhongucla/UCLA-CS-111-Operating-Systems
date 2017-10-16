@@ -1,0 +1,11 @@
+NAME: Justin Hong, Kedar Thiagarajan
+EMAIL: justinjh@ucla.edu, kedarbt@ucla.edu
+ID: 604565186, 504539433
+
+This file contains a description of all the files included in our submission tarball.
+
+lab3b.py: This file contains a python source module that reads each line in the file passed as a command line argument and outputs any errors to stdout. We chose python because parsing files and performing functions on strings are much easier in python compared to C/C++.
+
+Makefile: This file contains a working dist, clean, and default target. The clean and default target do nothing, since there are no output files generated and there is no executable that needs to be compiled. The dist target creates the submission tarball.
+
+lab3b: This file is a bash script that accepts a command line argument and then calls lab3b.py with the same argument. 

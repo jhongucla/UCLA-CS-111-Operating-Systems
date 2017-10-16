@@ -1,0 +1,13 @@
+NAME: Justin Hong, Kedar Thiagarajan
+EMAIL: justinjh@ucla.edu, kedarbt@ucla.edu
+ID: 604565186, 504539433
+
+
+This file contains a description of all the items included in our submission tarball.
+
+lab3a.c: This file contains a C source module that uses the pread(2) API to create an overview of an EXT2 file system image that is passed as an argument to the executable created by running make.
+
+Makefile: This file contains working default, clean, and dist targets. The default target builds the executable cleanly with no warnings, clean removes the executable and any output files, dist creates the tarball that is used for the submission.
+
+ext2_fs.h: This file contains the header file given to us in the spec. It is a slightly simplified version of the Linux header file that defines the format of the EXT2 file system.
+

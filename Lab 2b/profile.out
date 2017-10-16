@@ -1,0 +1,354 @@
+Total: 780 samples
+     571  73.2%  73.2%      780 100.0% thread_list
+     170  21.8%  95.0%      170  21.8% __strcmp_sse42
+      20   2.6%  97.6%      122  15.6% SortedList_insert
+      11   1.4%  99.0%       87  11.2% SortedList_lookup
+       8   1.0% 100.0%        8   1.0% _init
+       0   0.0% 100.0%      780 100.0% __clone
+       0   0.0% 100.0%      780 100.0% start_thread
+ROUTINE ====================== thread_list in /u/cs/ugrad/jianan/lab2b/lab2_list.c
+   571    780 Total samples (flat / cumulative)
+     .      .   45:     }
+     .      .   46:     return hash % num_lists;
+     .      .   47: }
+     .      .   48: 
+     .      .   49: void *thread_list(void* tid)
+---
+     .      .   50: {
+     .      .   51: 	struct timespec start, end;
+     .      .   52: 	long locking_time = 0;
+     .      .   53: 	int thread_num = *(int*)tid;
+     .      .   54: 	int i;
+     .      .   55: 	for (i = thread_num; i < num_threads * num_iterations; i += num_threads)
+     .      .   56: 	{
+     .      .   57: 		if (sync_opt == 'm')
+     .      .   58: 		{
+     .      .   59: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .   60: 			{
+     .      .   61: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .   62: 				exit(1);
+     .      .   63: 			}
+     .      .   64: 			pthread_mutex_lock(mutexes + list_choices[i]);
+     .      .   65: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .   66: 			{
+     .      .   67: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .   68: 				exit(1);
+     .      .   69: 			}
+     .      .   70: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .      .   71: 			SortedList_insert(lists + list_choices[i], list_elements + i);
+     .      .   72: 			pthread_mutex_unlock(mutexes + list_choices[i]);
+     .      .   73: 		}
+     .      .   74: 		else if (sync_opt == 's')
+     .      .   75: 		{
+     .      .   76: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .   77: 			{
+     .      .   78: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .   79: 				exit(1);
+     .      .   80: 			}
+   387    387   81: 			while (__sync_lock_test_and_set(locks + list_choices[i], 1));
+     .      .   82: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .   83: 			{
+     .      .   84: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .   85: 				exit(1);
+     .      .   86: 			}
+     .      .   87: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .    122   88: 			SortedList_insert(lists + list_choices[i], list_elements + i);
+     .      .   89: 			__sync_lock_release(locks + list_choices[i]);
+     .      .   90: 		}
+     .      .   91: 		else
+     .      .   92: 			SortedList_insert(lists + list_choices[i], list_elements + i);
+     .      .   93: 	}
+     .      .   94: 	list_len = 0;
+     .      .   95: 	int k;
+     .      .   96: 	for (k = 0; k < num_lists; k++)
+     .      .   97: 	{
+     .      .   98: 		if (sync_opt == 'm')
+     .      .   99: 		{
+     .      .  100: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .  101: 			{
+     .      .  102: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .  103: 				exit(1);
+     .      .  104: 			}
+     .      .  105: 			pthread_mutex_lock(mutexes + k);
+     .      .  106: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .  107: 			{
+     .      .  108: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .  109: 				exit(1);
+     .      .  110: 			}
+     .      .  111: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .      .  112: 			list_len += SortedList_length(lists + k);
+     .      .  113: 			pthread_mutex_unlock(mutexes + k);
+     .      .  114: 		}
+     .      .  115: 		else if (sync_opt == 's')
+     .      .  116: 		{
+     .      .  117: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .  118: 			{
+     .      .  119: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .  120: 				exit(1);
+     .      .  121: 			}
+     1      1  122: 			while (__sync_lock_test_and_set(locks + k, 1));
+     .      .  123: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .  124: 			{
+     .      .  125: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .  126: 				exit(1);
+     .      .  127: 			}
+     .      .  128: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .      .  129: 			list_len += SortedList_length(lists + k);
+     .      .  130: 			__sync_lock_release(locks + k);
+     .      .  131: 		}
+     .      .  132: 		else
+     .      .  133: 			list_len += SortedList_length(lists + k);
+     .      .  134: 	}
+     .      .  135: 	SortedListElement_t* toDelete;
+     .      .  136: 	for (i = thread_num; i < num_threads * num_iterations; i += num_threads)
+     .      .  137: 	{
+     .      .  138: 		if (sync_opt == 'm')
+     .      .  139: 		{
+     .      .  140: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .  141: 			{
+     .      .  142: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .  143: 				exit(1);
+     .      .  144: 			}
+     .      .  145: 			pthread_mutex_lock(mutexes + list_choices[i]);
+     .      .  146: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .  147: 			{
+     .      .  148: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .  149: 				exit(1);
+     .      .  150: 			}
+     .      .  151: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .      .  152: 			toDelete = SortedList_lookup(lists + list_choices[i], list_elements[i].key);
+     .      .  153: 			if (toDelete == NULL)
+     .      .  154: 			{
+     .      .  155: 				fprintf(stderr, "Lookup failed\n");
+     .      .  156: 				exit(2);
+     .      .  157: 			}
+     .      .  158: 			if (SortedList_delete(toDelete) != 0)
+     .      .  159: 			{
+     .      .  160: 				fprintf(stderr, "Delete failed\n");
+     .      .  161: 				exit(2);
+     .      .  162: 			}
+     .      .  163: 			pthread_mutex_unlock(mutexes + list_choices[i]);
+     .      .  164: 		}
+     .      .  165: 		else if (sync_opt == 's')
+     .      .  166: 		{
+     .      .  167: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .  168: 			{
+     .      .  169: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .  170: 				exit(1);
+     .      .  171: 			}
+   183    183  172: 			while (__sync_lock_test_and_set(locks + list_choices[i], 1));
+     .      .  173: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .  174: 			{
+     .      .  175: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .  176: 				exit(1);
+     .      .  177: 			}
+     .      .  178: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .     87  179: 			toDelete = SortedList_lookup(lists + list_choices[i], list_elements[i].key);
+     .      .  180: 			if (toDelete == NULL)
+     .      .  181: 			{
+     .      .  182: 				fprintf(stderr, "Lookup failed\n");
+     .      .  183: 				exit(2);
+     .      .  184: 			}
+     .      .  185: 			if (SortedList_delete(toDelete) != 0)
+     .      .  186: 			{
+     .      .  187: 				fprintf(stderr, "Delete failed\n");
+     .      .  188: 				exit(2);
+     .      .  189: 			}
+     .      .  190: 			__sync_lock_release(locks + list_choices[i]);
+     .      .  191: 		}
+     .      .  192: 		else
+     .      .  193: 		{
+     .      .  194: 			toDelete = SortedList_lookup(lists + list_choices[i], list_elements[i].key);
+     .      .  195: 			if (toDelete == NULL)
+     .      .  196: 			{
+     .      .  197: 				fprintf(stderr, "Lookup failed\n");
+     .      .  198: 				exit(2);
+     .      .  199: 			}
+     .      .  200: 			if (SortedList_delete(toDelete) != 0)
+     .      .  201: 			{
+     .      .  202: 				fprintf(stderr, "Delete failed\n");
+     .      .  203: 				exit(2);
+     .      .  204: 			}
+     .      .  205: 		}
+     .      .  206: 	}
+     .      .  207: 	return (void *)locking_time;
+     .      .  208: }
+---
+     .      .  209: 
+     .      .  210: void yield_opts(char* opts)
+     .      .  211: {
+     .      .  212: 	char yields[3] = {'i', 'd', 'l'};
+     .      .  213: 	int i;
+ROUTINE ====================== thread_list in /u/cs/ugrad/jianan/lab2b/lab2_list.c
+   571    780 Total samples (flat / cumulative)
+     .      .   45:     }
+     .      .   46:     return hash % num_lists;
+     .      .   47: }
+     .      .   48: 
+     .      .   49: void *thread_list(void* tid)
+---
+     .      .   50: {
+     .      .   51: 	struct timespec start, end;
+     .      .   52: 	long locking_time = 0;
+     .      .   53: 	int thread_num = *(int*)tid;
+     .      .   54: 	int i;
+     .      .   55: 	for (i = thread_num; i < num_threads * num_iterations; i += num_threads)
+     .      .   56: 	{
+     .      .   57: 		if (sync_opt == 'm')
+     .      .   58: 		{
+     .      .   59: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .   60: 			{
+     .      .   61: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .   62: 				exit(1);
+     .      .   63: 			}
+     .      .   64: 			pthread_mutex_lock(mutexes + list_choices[i]);
+     .      .   65: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .   66: 			{
+     .      .   67: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .   68: 				exit(1);
+     .      .   69: 			}
+     .      .   70: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .      .   71: 			SortedList_insert(lists + list_choices[i], list_elements + i);
+     .      .   72: 			pthread_mutex_unlock(mutexes + list_choices[i]);
+     .      .   73: 		}
+     .      .   74: 		else if (sync_opt == 's')
+     .      .   75: 		{
+     .      .   76: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .   77: 			{
+     .      .   78: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .   79: 				exit(1);
+     .      .   80: 			}
+   387    387   81: 			while (__sync_lock_test_and_set(locks + list_choices[i], 1));
+     .      .   82: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .   83: 			{
+     .      .   84: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .   85: 				exit(1);
+     .      .   86: 			}
+     .      .   87: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .    122   88: 			SortedList_insert(lists + list_choices[i], list_elements + i);
+     .      .   89: 			__sync_lock_release(locks + list_choices[i]);
+     .      .   90: 		}
+     .      .   91: 		else
+     .      .   92: 			SortedList_insert(lists + list_choices[i], list_elements + i);
+     .      .   93: 	}
+     .      .   94: 	list_len = 0;
+     .      .   95: 	int k;
+     .      .   96: 	for (k = 0; k < num_lists; k++)
+     .      .   97: 	{
+     .      .   98: 		if (sync_opt == 'm')
+     .      .   99: 		{
+     .      .  100: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .  101: 			{
+     .      .  102: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .  103: 				exit(1);
+     .      .  104: 			}
+     .      .  105: 			pthread_mutex_lock(mutexes + k);
+     .      .  106: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .  107: 			{
+     .      .  108: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .  109: 				exit(1);
+     .      .  110: 			}
+     .      .  111: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .      .  112: 			list_len += SortedList_length(lists + k);
+     .      .  113: 			pthread_mutex_unlock(mutexes + k);
+     .      .  114: 		}
+     .      .  115: 		else if (sync_opt == 's')
+     .      .  116: 		{
+     .      .  117: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .  118: 			{
+     .      .  119: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .  120: 				exit(1);
+     .      .  121: 			}
+     1      1  122: 			while (__sync_lock_test_and_set(locks + k, 1));
+     .      .  123: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .  124: 			{
+     .      .  125: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .  126: 				exit(1);
+     .      .  127: 			}
+     .      .  128: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .      .  129: 			list_len += SortedList_length(lists + k);
+     .      .  130: 			__sync_lock_release(locks + k);
+     .      .  131: 		}
+     .      .  132: 		else
+     .      .  133: 			list_len += SortedList_length(lists + k);
+     .      .  134: 	}
+     .      .  135: 	SortedListElement_t* toDelete;
+     .      .  136: 	for (i = thread_num; i < num_threads * num_iterations; i += num_threads)
+     .      .  137: 	{
+     .      .  138: 		if (sync_opt == 'm')
+     .      .  139: 		{
+     .      .  140: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .  141: 			{
+     .      .  142: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .  143: 				exit(1);
+     .      .  144: 			}
+     .      .  145: 			pthread_mutex_lock(mutexes + list_choices[i]);
+     .      .  146: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .  147: 			{
+     .      .  148: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .  149: 				exit(1);
+     .      .  150: 			}
+     .      .  151: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .      .  152: 			toDelete = SortedList_lookup(lists + list_choices[i], list_elements[i].key);
+     .      .  153: 			if (toDelete == NULL)
+     .      .  154: 			{
+     .      .  155: 				fprintf(stderr, "Lookup failed\n");
+     .      .  156: 				exit(2);
+     .      .  157: 			}
+     .      .  158: 			if (SortedList_delete(toDelete) != 0)
+     .      .  159: 			{
+     .      .  160: 				fprintf(stderr, "Delete failed\n");
+     .      .  161: 				exit(2);
+     .      .  162: 			}
+     .      .  163: 			pthread_mutex_unlock(mutexes + list_choices[i]);
+     .      .  164: 		}
+     .      .  165: 		else if (sync_opt == 's')
+     .      .  166: 		{
+     .      .  167: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1)
+     .      .  168: 			{
+     .      .  169: 				fprintf(stderr, "Error starting clock: %s\n", strerror(errno));
+     .      .  170: 				exit(1);
+     .      .  171: 			}
+   183    183  172: 			while (__sync_lock_test_and_set(locks + list_choices[i], 1));
+     .      .  173: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1)
+     .      .  174: 			{
+     .      .  175: 				fprintf(stderr, "Error ending clock: %s\n", strerror(errno));
+     .      .  176: 				exit(1);
+     .      .  177: 			}
+     .      .  178: 			locking_time += 1000000000 * (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec);
+     .     87  179: 			toDelete = SortedList_lookup(lists + list_choices[i], list_elements[i].key);
+     .      .  180: 			if (toDelete == NULL)
+     .      .  181: 			{
+     .      .  182: 				fprintf(stderr, "Lookup failed\n");
+     .      .  183: 				exit(2);
+     .      .  184: 			}
+     .      .  185: 			if (SortedList_delete(toDelete) != 0)
+     .      .  186: 			{
+     .      .  187: 				fprintf(stderr, "Delete failed\n");
+     .      .  188: 				exit(2);
+     .      .  189: 			}
+     .      .  190: 			__sync_lock_release(locks + list_choices[i]);
+     .      .  191: 		}
+     .      .  192: 		else
+     .      .  193: 		{
+     .      .  194: 			toDelete = SortedList_lookup(lists + list_choices[i], list_elements[i].key);
+     .      .  195: 			if (toDelete == NULL)
+     .      .  196: 			{
+     .      .  197: 				fprintf(stderr, "Lookup failed\n");
+     .      .  198: 				exit(2);
+     .      .  199: 			}
+     .      .  200: 			if (SortedList_delete(toDelete) != 0)
+     .      .  201: 			{
+     .      .  202: 				fprintf(stderr, "Delete failed\n");
+     .      .  203: 				exit(2);
+     .      .  204: 			}
+     .      .  205: 		}
+     .      .  206: 	}
+     .      .  207: 	return (void *)locking_time;
+     .      .  208: }
+---
+     .      .  209: 
+     .      .  210: void yield_opts(char* opts)
+     .      .  211: {
+     .      .  212: 	char yields[3] = {'i', 'd', 'l'};
+     .      .  213: 	int i;

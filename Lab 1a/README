@@ -1,0 +1,28 @@
+NAME: Justin Hong
+EMAIL: justinjh@ucla.edu
+ID: 604565186
+
+lab1a.c:
+This file contains the program as described by the specification. I chose a buffer size of 1024 as recommended. My program includes some global variables that need be accessed by different functions. In addition to the system calls mentioned in the specification, I also used dup2 and atexit, which helped me simplify the process of duplicating file descriptors and doing cleanup and restoration upon exiting the program. 
+   
+Makefile:
+This file contains the following targets.
+default: This builds the executable with gcc and option -g.
+clean: This removes the executable, any .o files, and the distribution tarball, thus returning the directory to its original state.
+dist: This builds the distribution tarball.
+
+README:
+This file provides a description of each included file.
+
+References:
+I used code from the following site as a reference for how to use pipe as well as fork.
+http://man7.org/linux/man-pages/man2/pipe.2.html
+
+I found out how to use dup2 using this page, which helped simplify my duplication of standard input, standard output, and standard error of the shell to the appropriate pipes.
+https://linux.die.net/man/2/dup
+
+I learned how to use atexit using this page, which made restoring terminal modes and cleaning up at exit much easier.
+https://linux.die.net/man/3/atexit
+
+I found an example of how to use poll from the following site
+http://stackoverflow.com/questions/12444679/poll-function-in-c-how-does-it-work

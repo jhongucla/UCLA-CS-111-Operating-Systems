@@ -1,0 +1,18 @@
+NAME: Justin Hong
+EMAIL: justinjh@ucla.edu
+ID: 604565186
+
+lab4c_tcp.c:
+This file contains the program that uses the AIO functions of the MRAA library to read from a temperature sensor on the Edison and send reports over a TCP connection to a remote logging server. It also receives commands over the same connection that change its behavior. 
+
+lab4c_tls.c:
+This file contains the program that provides the same functionality of the lab4c_tcp.c program except that it connects to a remote logging server using a SSL/TLS connection. This provides authentication for both the Edison and the server and encrypts all data that is passed over the connection. 
+
+Makefile:
+This file contains the following targets.
+default: This builds the executables for the lab4c_tcp and lab4c_tls programs.
+clean: This removes all generated programs and output.
+dist: This creates the distribution tarball.
+
+README:
+This file provides a description of each included file and other information.

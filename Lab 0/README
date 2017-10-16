@@ -1,0 +1,32 @@
+NAME: Justin Hong
+EMAIL: justinjh@ucla.edu
+ID: 604565186
+
+lab0.c:
+This file contains the program that copies its standard input to its standard output. It does this by reading from standard input and writing to standard output unless the --input and --output options are used. When the --segfault option is invoked, the program forces a segmentation fault. When the --catch option is invoked, the program catches the segmentation fault.
+
+Makefile:
+This file contains the following targets.
+default: This builds the executable with gcc and option -g.
+check: This runs the default target and then runs the 5 test targets.
+clean: This removes the executable, any .o files, any .txt files, and the distribution tarball.
+testOpen: This test target creates a file that cannot be opened and then attempts to open it using the program to see if the program exits with the proper exit code. 
+testCreat: This test target creates a file that cannot be written and then attempts to write to it using the program to see if the program exits with the proper exit code. 
+testCatch: This test target runs the program with the --segfault and --catch options to see if it exits with the proper exit code. 
+testFinish: This test target runs the program normally to see if it finishes execution and exits with the proper exit code.
+testReadWrite: This test target runs the program with --input and --output options and then compares the files read from and written to to see if they are identical.
+Each test target outputs whether the test was passed or failed. 
+
+README:
+This file provides a description of each included file, as well as descriptions of the test cases in the check target of the Makefile and any sources I used.
+
+backtrace.png:
+This file is a screenshot of the stack backtrace using gdb after running the program with the --segfault option. My backtrace contains two stack frames because I put the code that causes the segfault in a separate function. 
+
+breakpoint.png:
+This file is a screenshot of the breakpoint set in gdb where the code that causes the segfault is located. I inspected the pointer and confirmed that it is indeed NULL by printing it and seeing that it is located at address 0x0. I then attempted to print what is located at that memory address but could not since gdb could not access memory at that location.
+
+Sources:
+I used the following sites to look up how to use the getopt_long API.
+https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
+https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Options.html#Getopt-Long-Options

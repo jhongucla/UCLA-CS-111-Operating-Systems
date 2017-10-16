@@ -1,0 +1,133 @@
+NAME: Justin Hong
+EMAIL: justinjh@ucla.edu
+ID: 604565186
+
+PART 1:
+
+I found that it takes about 4 threads and about 1000 iterations to fairly consistently see failure.
+
+QUESTION 2.1.1 - causing conflicts:
+Why does it take many iterations before errors are seen?
+
+It takes many iterations before errors are seen because as the number of iterations increases, the chance of a race condition in the critical section increases as the threads execute the critical section more times. The more race conditions arise, the higher the chance of failure. 
+
+Why does a significantly smaller number of iterations so seldom fail?
+
+If the number of iterations is small, the threads execute the critical section a much fewer number of times and the chance of a race condition is small. Since the number of race conditions is small, the chance of failure is small.
+
+QUESTION 2.1.2 - cost of yielding:
+Why are the --yield runs so much slower?
+
+When running with the yield option, the threads immediately yield rather than waiting for a time slice to preempt it so context switches occur more often, adding overhead and slowing down execution.
+
+Where is the additional time going?
+
+The additional time is going into extra context switches, which involve interrupting the execution of a thread and saving its state before loading in another thread from the waiting queue and running it. All of these operations take additional time.
+
+Is it possible to get valid per-operation timings if we are using the --yield option? If so, explain how. If not, explain why not.
+
+It is not possible to get valid timings because the overhead added by the extra context switches makes it impossible to determine the actual time spent on an operation by a thread. We cannot separate the time spent on context switches from the time spent on executing instructions by threads.
+
+QUESTION 2.1.3 - measurement errors:
+Why does the average cost per operation drop with increasing iterations?
+
+The average cost per operation drops because for small numbers of iterations, a large proportion of the total cost is the overhead of initially creating the threads because the total cost of actual operations is relatively small. Since the threads are only created once, as the number of iterations increases, the contribution of thread creation overhead to the total cost decreases as the cost of actual operations dominates the total cost. Therefore the average cost per operation approaches the true cost per operation as iterations increase.
+
+If the cost per iteration is a function of the number of iterations, how do we know how many iterations to run (or what the "correct" cost is)?
+
+To discover the "correct" cost, we should run as many iterations as possible, with infinity being the ideal case. As the number of iterations approaches infinity, the initial thread creation overhead becomes insignificant and the average cost per operation converges to the "correct" cost. 
+
+QUESTION 2.1.4 - costs of serialization:
+Why do all of the options perform similarly for low numbers of threads?
+
+For low numbers of threads, very few threads need to wait so the instructions are executed almost continously. The chance that one thread will try to enter a critical section while another thread is in it is very low. Therefore the locking mechanisms are rarely needed to make threads wait so every option perform's similarly.
+
+Why do the three protected operations slow down as the number of threads rises?
+
+The protected operations slow down because as the number of threads rises, the chance of other threads trying to enter the critical section while one thread is already in it increases. Thus the protected operations must make the other threads wait until the thread exits the critical section. These blocking and waiting operations add overhead that slows down execution. Also the waiting threads are not getting any work done while waiting for other threads.
+
+PART 2:
+
+I started seeing fairly consistent errors around 4 threads and 100 iterations without yield options. With --yield=i, it was around 8-16 iterations. With --yield=d, it was around 16 iterations. With --yield=il, it was around 32 iterations. With --yield=dl, it was around 16-32 iterations.
+
+QUESTION 2.2.1 - scalability of Mutex:
+Compare the variation in time per mutex-protected operation vs the number of threads in Part-1 (adds) and Part-2 (sorted lists).
+
+We can see that for sorted lists, as the number of threads increases, the time per mutex-protected operation increases much more than for adds. From 1 to 16 threads, the time per operation for sorted lists has increased by over an order of magnitude but for adds it has only increased a bit over twofold. 
+
+Comment on the general shapes of the curves, and explain why they have this shape.
+
+For sorted lists, as the number of threads increases, the time per mutex-protected operation increases almost linearly so the curve is like a straight line. For adds, as the number of threads increases, the time per operation increases linearly initially and then levels off so the curve has a positive slope at first and then little slope.
+
+Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences.
+
+Since the time per operation appears to increase linearly with the number of threads for sorted list, mutexes appear to scale relatively poorly for linked lists. This can be attributed to the larger critical sections in the implementation of linked lists as well as the higher frequency of entering the critical section. This leads to more race conditions between threads and resource contention so each operation becomes slower with more threads due to overhead. In contrast, mutexes appear to scale well for adds. Although the cost per operation increases initially as the number of threads increases, it starts to level off with higher number of threads. This can be attributed to the smaller critical sections in the addition code which leads to fewer race conditions and less overhead for higher number of threads. Therefore mutexes work better for adds than sorted lists with multithreading.
+
+QUESTION 2.2.2 - scalability of spin locks:
+Compare the variation in time per protected operation vs the number of threads for list operations protected by Mutex vs Spin locks. 
+
+According to the plot, the time per protected operation is always higher for spin locks than mutex except for a single thread when both locks are not used. 
+
+Comment on the general shapes of the curves, and explain why they have this shape.
+
+Both curves start at the same point for a single thread. As the number of threads increases, the time per operation for both mutex and spin locks increases. However, the time per operation for spin locks is consistently higher than for mutexes and it grows faster as well. This leads to the curve for spin locks being above that for mutexes and the gap between them becoming larger as the number of threads increases. 
+
+Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences.
+
+Both curves appear to increase linearly with increasing number of threads. However the slope for the spin locks curve appears to be greater than that for the mutex curve, as the gap between the curves increases. This can be attributed to the inefficiency of the spin locks compared to mutexes as they waste CPU cycles for waiting threads. As the number of threads increases, this effect becomes more pronounced, hence the greater gap between the curves and the higher rate of increase.
+
+lab2_add.c:
+The program that implements and tests a shared variable add function. It writes output in a CSV format that can be plotted with the given script.
+
+lab2_list.c:
+The program that tests multithreaded operations on a linked list. It writes output in a CSV format that can be plotted with the given script.
+
+SortedList.h:
+A provided header file that describes the interfaces for linked list operations.
+
+SortedList.c:
+A module that implements the insert, delete, lookup, and length functions for linked lists as described in the header file. 
+
+Makefile:
+This file contains the following targets.
+build: compiles the files into two executables lab2_add and lab2_list (runs by default)
+tests: runs all the test cases and generates results in CSV files lab2_add.csv and lab2_list.csv
+graphs: uses the provided scripts to generate graphs of the data using gnuplot
+dist: generates all programs and output and builds the distribution tarball
+clean: delete all generated programs and output
+
+lab2_add.csv:
+This file contains the results for all the test cases for the add program in CSV form.
+
+lab2_list.csv:
+This files contains the results for all the test cases for the linked list program in CSV form.
+
+lab2_add-1.png:
+This file is a graph generated with gnuplot showing threads and iterations required to generate a failure (with and without yields).
+
+lab2_add-2.png:
+This file is a graph generated with gnuplot showing average time per operation with and without yields.
+
+lab2_add-3.png:
+This file is a graph generated with gnuplot showing average time per (single threaded) operation vs. the number of iterations.
+
+lab2_add-4.png:
+This file is a graph generated with gnuplot showing threads and iterations that can run successfully with yields under each of the synchronization options.
+
+lab2_add-5.png:
+This file is a graph generated with gnuplot showing average time per (protected) operation vs. the number of threads.
+
+lab2_list-1.png:
+This file is a graph generated with gnuplot showing average time per (single threaded) unprotected operation vs. number of iterations (illustrating the correction of the per-operation cost for the list length).
+
+lab2_list-2.png:
+This file is a graph generated with gnuplot showing threads and iterations required to generate a failure (with and without yields).
+
+lab2_list-3.png:
+This file is a graph generated with gnuplot showing iterations that can run (protected) without failure.
+
+lab2_list-4.png:
+This file is a graph generated with gnuplot showing (length-adjusted) cost per operation vs the number of threads for the various synchronization options.
+
+README:
+This files provides a description of each included file and answers to each of the questions in the specification.

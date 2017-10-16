@@ -1,0 +1,28 @@
+NAME: Justin Hong
+EMAIL: justinjh@ucla.edu
+ID: 604565186
+
+lab1b-client.c:
+This file contains the program that acts as the client which connects to the server program. In the client program, I implemented the <cr> or <lf> mapping to <lf> when sent through the socket. The client terminal still outputs both <cr> and <lf>.
+
+lab1b-server.c:
+This file contains the program that acts as the server program which connects to the client program. In the server program, I implemented mapping <lf> from the shell to <cr> and <lf> before sending through the socket. 
+
+Makefile:
+This file contains the following targets.
+default: calls the client and server targets to build the lab1b-client and lab1b-server executables
+client: builds the lab1b-client executable with the -libmcrypt flag 
+server: builds the lab1b-server executable with the -libmcrypt flag
+clean: This removes the lab1b-client and lab1b-server executables and the distribution tarball, thus returning the directory to its original state.
+dist: This builds the distribution tarball.
+
+README:
+This file provides a description of each included file.
+
+References:
+I used code from this socket programming tutorial mentioned in the specification to implement my TCP socket.
+http://www.cs.rpi.edu/~moorthy/Courses/os98/Pgms/socket.html
+
+I learned how to use mcrypt for encryption and decryption using code from this site.
+http://mcrypt.hellug.gr/lib/mcrypt.3.html
+
